@@ -8,21 +8,13 @@ import torch
 import torch.backends.cudnn as cudnn
 from numpy import random
 import copy
-import os
-from enum import Enum
-import io
-import numpy as np
+
 from models.experimental import attempt_load
 from utils.datasets import letterbox
 from utils.general import check_img_size, non_max_suppression_face, apply_classifier, scale_coords, xyxy2xywh, \
     strip_optimizer, set_logging, increment_path
 from utils.plots import plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized
-
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import StreamingResponse
-import uvicorn
-import nest_asyncio
 
 
 def load_model(weights, device):
@@ -78,14 +70,15 @@ def show_results(img, xywh, conf, landmarks, class_num):
 
 
 
-def detect_one(model, image, device):
+def detect_one(model, image_path, device):
     # Load model
     img_size = 800
     conf_thres = 0.3
     iou_thres = 0.5
 
-    orgimg = image # BGR
+    orgimg = cv2.imread(image_path)  # BGR
     img0 = copy.deepcopy(orgimg)
+    assert orgimg is not None, 'Image Not Found ' + image_path
     h0, w0 = orgimg.shape[:2]  # orig hw
     r = img_size / max(h0, w0)  # resize image to img_size
     if r != 1:  # always resize down, only resize up if training with augmentation
@@ -137,67 +130,19 @@ def detect_one(model, image, device):
                 landmarks = (det[j, 5:15].view(1, 10) / gn_lks).view(-1).tolist()
                 class_num = det[j, 15].cpu().numpy()
                 orgimg = show_results(orgimg, xywh, conf, landmarks, class_num)
-    return orgimg
+
+    cv2.imwrite('result.jpg', orgimg)
 
 
-class Model(str, Enum):
-    yolov5n05 = "yolov5n-0.5.pt"
-    yolov5nface = "yolov5n-face.pt"
-    yolov5s = "yolov5s-face.pt"
+
 
 if __name__ == '__main__':
-    # Assign an instance of the FastAPI class to the variable "app".
-    # You will interact with your api using this instance.
-    app = FastAPI(title='Deploying a ML Model with FastAPI')
-
-    @app.get("/")
-    def home():
-        return "Congratulations! You reached Najeeb's Dev Machine. Now head over to http://192.168.2.101:8000/docs to try out Yolo5Face."
-
-
-    @app.post("/predict")
-    def prediction(weights: Model, file: UploadFile = File(...)):
-        filename = file.filename
-        fileExtension = filename.split(".")[-1] in ("jpg", "jpeg", "png")
-        if not fileExtension:
-            raise HTTPException(status_code=415, detail="Unsupported file provided.")
-
-        # 2. TRANSFORM RAW IMAGE INTO CV2 image
-
-        # Read image as a stream of bytes
-        image_stream = io.BytesIO(file.file.read())
-
-        # Start the stream from the beginning (position zero)
-        image_stream.seek(0)
-
-        # Write the stream of bytes into a numpy array
-        file_bytes = np.asarray(bytearray(image_stream.read()), dtype=np.uint8)
-
-        # Decode the numpy array as an image
-        image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-
-        print(weights+"/"+filename)
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = load_model(weights, device)
-        output_image = detect_one(model, image, device)
-
-        # Save it in a folder within the server
-        cv2.imwrite(f'images_uploaded/{filename}', output_image)
-
-        # 4. STREAM THE RESPONSE BACK TO THE CLIENT
-
-        # Open the saved image for reading in binary mode
-        file_image = open(f'images_uploaded/{filename}', mode="rb")
-
-        # Return the image as a stream specifying media type
-        return StreamingResponse(file_image, media_type="image/jpeg")
-
-
-    # Allows the server to be run in this interactive environment
-    nest_asyncio.apply()
-
-    # Host depends on the setup you selected (docker or virtual env)
-    host = "192.168.2.101"
-
-    # Spin up the server!
-    uvicorn.run(app, host=host, port=8000)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--weights', nargs='+', type=str, default='runs/train/exp5/weights/last.pt', help='model.pt path(s)')
+    parser.add_argument('--image', type=str, default='data/images/test.jpg', help='source')  # file/folder, 0 for webcam
+    parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
+    opt = parser.parse_args()
+    print(opt)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = load_model(opt.weights, device)
+    detect_one(model, opt.image, device)
