@@ -11,7 +11,7 @@ import torch.nn as nn
 sys.path.append('./')  # to run '$ python *.py' files in subdirectories
 logger = logging.getLogger(__name__)
 
-from models.common import Conv, Bottleneck, SPP, DWConv, Focus, BottleneckCSP, C3, ShuffleV2Block, Concat, NMS, autoShape, StemBlock
+from models.common import Conv, Bottleneck, SPP, DWConv, Focus, BottleneckCSP, C3, ShuffleV2Block, Concat, NMS, autoShape, StemBlock, BlazeBlock, DoubleBlazeBlock
 from models.experimental import MixConv2d, CrossConv
 from utils.autoanchor import check_anchor_order
 from utils.general import make_divisible, check_file, set_logging
@@ -49,6 +49,9 @@ class Detect(nn.Module):
         if self.export:
             for i in range(self.nl):
                 x[i] = self.m[i](x[i])
+                bs, _, ny, nx = x[i].shape  # x(bs,48,20,20) to x(bs,3,20,20,16)
+                x[i] = x[i].view(bs, self.na, self.no, ny, nx).permute(0, 1, 3, 4, 2).contiguous()
+
             return x
         for i in range(self.nl):
             x[i] = self.m[i](x[i])  # conv
@@ -60,7 +63,8 @@ class Detect(nn.Module):
                     self.grid[i] = self._make_grid(nx, ny).to(x[i].device)
 
                 y = torch.full_like(x[i], 0)
-                y[..., [0,1,2,3,4,15]] = x[i][..., [0,1,2,3,4,15]].sigmoid()
+                class_range = list(range(5)) + list(range(15,15+self.nc))
+                y[..., class_range] = x[i][..., class_range].sigmoid()
                 y[..., 5:15] = x[i][..., 5:15]
                 #y = x[i].sigmoid()
 
@@ -238,7 +242,7 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
                 pass
 
         n = max(round(n * gd), 1) if n > 1 else n  # depth gain
-        if m in [Conv, Bottleneck, SPP, DWConv, MixConv2d, Focus, CrossConv, BottleneckCSP, C3, ShuffleV2Block, StemBlock]:
+        if m in [Conv, Bottleneck, SPP, DWConv, MixConv2d, Focus, CrossConv, BottleneckCSP, C3, ShuffleV2Block, StemBlock, BlazeBlock, DoubleBlazeBlock]:
             c1, c2 = ch[f], args[0]
 
             # Normal

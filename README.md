@@ -1,3 +1,32 @@
+## What's New
+
+**2021.11**: BlazeFace
+| Method               | multi scale | Easy  | Medium | Hard  | Model Size(MB) | Link  |
+| -------------------- | ----------- | ----- | ------ | ----- | -------------- | ----- |
+| BlazeFace            | Ture        | 88.5  | 85.5   | 73.1  | 0.472          | https://github.com/PaddlePaddle/PaddleDetection |
+| BlazeFace-FPN-SSH    | Ture        | 90.7  | 88.3   | 79.3  | 0.479          | https://github.com/PaddlePaddle/PaddleDetection |
+| yolov5-blazeface     | True        | 90.4  | 88.7   | 78.0  | 0.493          | https://pan.baidu.com/s/1RHp8wa615OuDVhsO-qrMpQ pwd:r3v3 |
+| yolov5-blazeface-fpn | True        | 90.8  | 89.4   | 79.1  | 0.493          |  -    |
+
+**2021.08**: Yolov5-face to TensorRT.  
+Inference time on rtx2080ti.
+|Backbone|Pytorch |TensorRT_FP16 |
+|:---:|:----:|:----:|
+|yolov5n-0.5|11.9ms|2.9ms|
+|yolov5n-face|20.7ms|2.5ms|
+|yolov5s-face|25.2ms|3.0ms|
+|yolov5m-face|61.2ms|3.0ms|
+|yolov5l-face|109.6ms|3.6ms|
+> Note: (1) Model inference  (2) Resolution 640x640
+
+
+**2021.08**: Add new training dataset [Multi-Task-Facial](https://drive.google.com/file/d/1Pwd6ga06cDjeOX20RSC1KWiT888Q9IpM/view?usp=sharing),improve large face detection.
+| Method               | Easy  | Medium | Hard  | 
+| -------------------- | ----- | ------ | ----- |
+| ***YOLOv5s***        | 94.56 | 92.92  | 83.84 |
+| ***YOLOv5m***        | 95.46 | 93.87  | 85.54 |
+
+
 ## Introduction
 
 Yolov5-face is a real-time,high accuracy face detection.
@@ -48,13 +77,13 @@ Single Scale Inference on VGA resolution（max side is equal to 640 and scale).
 | yolov5n-0.5 | 90.76 | 88.12  | 73.82 | 0.571    | 0.447     | Link: https://pan.baidu.com/s/1UgiKwzFq5NXI2y-Zui1kiA  pwd: s5ow, https://drive.google.com/file/d/1XJ8w55Y9Po7Y5WP4X1Kg1a77ok2tL_KY/view?usp=sharing |
 | yolov5n     | 93.61 | 91.52  | 80.53 | 2.111    | 1.726     | Link: https://pan.baidu.com/s/1xsYns6cyB84aPDgXB7sNDQ  pwd: lw9j,https://drive.google.com/file/d/18oenL6tjFkdR1f5IgpYeQfDFqU4w3jEr/view?usp=sharing |
 | yolov5s     | 94.33 | 92.61  | 83.15 | 5.751    | 7.075     | Link: https://pan.baidu.com/s/1fyzLxZYx7Ja1_PCIWRhxbw  Link: eq0q,https://drive.google.com/file/d/1zxaHeLDyID9YU4-hqK7KNepXIwbTkRIO/view?usp=sharing |
-| yolov5m     | 95.30 | 93.76  | 85.28 | 18.146   | 21.063    | Link: https://pan.baidu.com/s/1oePvd2K6R4-gT0g7EERmdQ  pwd: jmtk |
-| yolov5l     | 95.78 | 94.30  | 86.13 | 41.607   | 46.627    | Link: https://pan.baidu.com/s/11l4qSEgA2-c7e8lpRt8iFw  pwd: 0mq7 |
+| yolov5m     | 95.30 | 93.76  | 85.28 | 18.146   | 21.063    | Link: https://pan.baidu.com/s/1oePvd2K6R4-gT0g7EERmdQ  pwd: jmtk, https://drive.google.com/file/d/1Sx-KEGXSxvPMS35JhzQKeRBiqC98VDDI |
+| yolov5l     | 95.78 | 94.30  | 86.13 | 41.607   | 46.627    | Link: https://pan.baidu.com/s/11l4qSEgA2-c7e8lpRt8iFw  pwd: 0mq7, https://drive.google.com/file/d/16F-3AjdQBn9p3nMhStUxfDNAE_1bOF_r |
 
 ## Data preparation
 
 1. Download WIDERFace datasets.
-2. Download annotation files from [onedrive](https://1drv.ms/u/s!AswpsDO2toNKrU5PF53RsjTWACnc?e=jbQHnr).
+2. Download annotation files from [google drive](https://drive.google.com/file/d/1tU_IjyOwGQfGNUvZGwWWM4SwxKp2PUQ8/view?usp=sharing).
 
 ```shell
 python3 train2yolo.py
@@ -89,6 +118,9 @@ python3 evaluation.py
 
 https://github.com/FeiGeChuanShu/ncnn_Android_face/tree/main/ncnn-android-yolov5_face
 
+#### opencv dnn demo
+
+https://github.com/hpc203/yolov5-face-landmarks-opencv-v2
 
 #### References
 
@@ -112,4 +144,11 @@ https://github.com/deepinsight/insightface
       booktitle = {ArXiv preprint ArXiv:2105.12931},
       year = {2021}
       }
+
+#### Main Contributors
+https://github.com/derronqi  
+
+https://github.com/changhy666 
+
+https://github.com/bobo0810 
 
